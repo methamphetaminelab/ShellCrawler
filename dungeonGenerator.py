@@ -1,45 +1,130 @@
 import random
 from roomsList import rooms
 
-def placeChecker(dungeon, room, width, height, roomX, roomY):
-    roomWidth = len(room[0])
-    roomHeight = len(room)
+def generateClearDungeon(width, height):
+    dungeon = [["." for _ in range(width)] for _ in range(height)]
+    
+    top = "╔" + "═" * width + "╗"
+    bot = "╚" + "═" * width + "╝"
+    dungeon.insert(0, list(top))
+    dungeon.append(list(bot))
 
-    if roomX + roomHeight > height or roomY + roomWidth > width or roomX < 0 or roomY < 0: # если не заходит за границы
+    for row in dungeon[1:-1]:
+        row.insert(0, "║")
+        row.append("║")
+
+    return dungeon
+
+def generateEnemies(dungeon, width, height, enemiesCount):
+    for _ in range(enemiesCount):
+        chestX = random.randint(1, height - 2)
+        chestY = random.randint(1, width - 2)
+        
+        while dungeon[chestX][chestY] != ".":
+            chestX = random.randint(1, height - 2)
+            chestY = random.randint(1, width - 2)
+        
+        dungeon[chestX][chestY] = 'E'
+
+    return dungeon
+
+def generateChests(dungeon, width, height, chestsCount):
+    for _ in range(chestsCount):
+        chestX = random.randint(1, height)
+        chestY = random.randint(1, width)
+        
+        while dungeon[chestX][chestY] != ".":
+            chestX = random.randint(1, height)
+            chestY = random.randint(1, width)
+        
+        dungeon[chestX][chestY] = 'C'
+
+    return dungeon
+
+def placeChecker(dungeon, room, roomX, roomY):
+    roomHeight = len(room)
+    roomWidth = len(room[0])
+
+    if roomX + roomHeight > len(dungeon) or roomY + roomWidth > len(dungeon[0]):
         return False
 
     for i in range(roomHeight):
         for j in range(roomWidth):
-            if dungeon[roomX + i][roomY + j] != '.': # если точка размещения не пуста
+            if dungeon[roomX + i][roomY + j] != ".":
                 return False
+
+    for i in range(roomX - 1, roomX + roomHeight + 1):
+        for j in range(roomY - 1, roomY + roomWidth + 1):
+            if 0 <= i < len(dungeon) and 0 <= j < len(dungeon[0]):
+                if dungeon[i][j] != ".":
+                    return False
+
     return True
 
-def placeSpawnRoom(dungeon, width, height):
-    room = random.choice(list(rooms.values()))
+def generateDoors(dungeon, roomX, roomY, roomWidth, roomHeight):
+    doors = ['u', 'd', 'l', 'r']
+    
+    doorDirection = random.choice(doors)
 
-    roomHeight = len(room)
-    roomWidth = len(room[0])
-
-    roomX = random.randint(1, height - roomHeight - 1)
-    roomY = random.randint(1, width - roomWidth - 1)
-
-    if placeChecker(dungeon, room, width, height, roomX, roomY):
-        for i in range(roomHeight):
-            for j in range(roomWidth):
-                dungeon[roomX + i][roomY + j] = room[i][j] # ставим комнату спавна
-
-        spawnPoint = (roomX + roomHeight // 2 , roomY + roomWidth // 2)
-        dungeon[spawnPoint[0]][spawnPoint[1]] = 'S' # ставим спавн
-
+    if doorDirection == 'u': 
+        doorPos = roomY + roomWidth // 2
+        dungeon[roomX][doorPos] = '-'
+    elif doorDirection == 'd':
+        doorPos = roomY + roomWidth // 2
+        dungeon[roomX + roomHeight - 1][doorPos] = '-'
+    elif doorDirection == 'l':
+        doorPos = roomX + roomHeight // 2
+        dungeon[doorPos][roomY] = '|'
+    elif doorDirection == 'r':
+        doorPos = roomX + roomHeight // 2
+        dungeon[doorPos][roomY + roomWidth - 1] = '|'
+    
     return dungeon
 
-def placeRoom():
-    pass
+def generateRooms(dungeon, width, height):
+    roomsPlaced = 0
 
-def generateDungeon(width, height):
-    dungeon = [['.' for _ in range(width)] for _ in range(height)]
+    for _ in range(len(dungeon)):
+        room = random.choice(rooms["chestrooms"])
+        roomWidth = len(room[0])
+        roomHeight = len(room)
 
-    dungeon = placeSpawnRoom(dungeon, width, height)
+        placed = False
+        attempts = 0
+
+        if height <= roomHeight or width <= roomWidth:
+            continue
+
+        while not placed and attempts < 100:
+            roomX = random.randint(1, max(1, height - roomHeight - 1))
+            roomY = random.randint(1, max(1, width - roomWidth - 1))
+            
+            if placeChecker(dungeon, room, roomX, roomY):
+                for i in range(roomHeight):
+                    for j in range(roomWidth):
+                        dungeon[roomX + i][roomY + j] = room[i][j]
+                
+                dungeon = generateDoors(dungeon, roomX, roomY, roomWidth, roomHeight)
+                placed = True
+                roomsPlaced += 1
+            attempts += 1
+
+    if roomsPlaced == 0:
+        return generateRooms(dungeon, width, height)
+    else:
+        return dungeon
+
+def randomSize():
+    return random.randint(20, 30), random.randint(10, 15)
+
+def generateDungeon(enemiesCount, chestsCount, floorsCount):
+    width, height = randomSize()
+    print(f"{width}x{height}")
+    
+    dungeon = generateClearDungeon(width, height)  # Генерация пустого подземелья
+    dungeon = generateRooms(dungeon, width, height)  # Генерация комнат
+    # dungeon = generateChests(dungeon, width, height, chestsCount)  # Генерация сундуков
+    # dungeon = generateEnemies(dungeon, width, height, enemiesCount)  # Генерация врагов
 
     for row in dungeon:
         print(''.join(row))

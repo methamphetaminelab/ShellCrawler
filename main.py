@@ -2,4 +2,4 @@ from dungeonGenerator import generateDungeon
 
 
 if __name__ == '__main__':
-    generateDungeon(200, 40)
+    generateDungeon(3, 2, 2)
