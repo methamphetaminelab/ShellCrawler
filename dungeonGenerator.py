@@ -83,12 +83,13 @@ def generateDoors(dungeon, roomX, roomY, roomWidth, roomHeight):
 
 def generateRooms(dungeon, width, height):
     roomsPlaced = 0
+    roomsCoords = []
 
     for _ in range(len(dungeon)):
         room = random.choice(rooms["chestrooms"])
         roomWidth = len(room[0])
         roomHeight = len(room)
-
+        
         placed = False
         attempts = 0
 
@@ -107,24 +108,31 @@ def generateRooms(dungeon, width, height):
                 dungeon = generateDoors(dungeon, roomX, roomY, roomWidth, roomHeight)
                 placed = True
                 roomsPlaced += 1
+                cRoomCoords = [roomX + 1, roomY + 1, roomX + roomHeight - 2, roomY + roomWidth - 2]
+                #dungeon[cRoomCoords[0]][cRoomCoords[1]] = '+'
+                #dungeon[cRoomCoords[2]][cRoomCoords[3]] = '+'
+                roomsCoords.append(cRoomCoords)
             attempts += 1
 
+    print(roomsCoords)
     if roomsPlaced == 0:
         return generateRooms(dungeon, width, height)
     else:
-        return dungeon
+        return dungeon, roomsCoords
 
 def randomSize():
     return random.randint(20, 30), random.randint(10, 15)
 
 def generateDungeon(enemiesCount, chestsCount, floorsCount):
-    width, height = randomSize()
+    width, height = randomSize() # Выбираем размер подземелья
     print(f"{width}x{height}")
     
-    dungeon = generateClearDungeon(width, height)  # Генерация пустого подземелья
-    dungeon = generateRooms(dungeon, width, height)  # Генерация комнат
-    # dungeon = generateChests(dungeon, width, height, chestsCount)  # Генерация сундуков
+    dungeon = generateClearDungeon(width, height)  # Генерируем пустое подземелья
+    dungeon, roomsCoords = generateRooms(dungeon, width, height)  # Генеруем комнаты
+    # dungeon = generateChests(dungeon, width, height, roomsCoor)  # Генерация сундуков
     # dungeon = generateEnemies(dungeon, width, height, enemiesCount)  # Генерация врагов
 
     for row in dungeon:
         print(''.join(row))
+
+    return dungeon, roomsCoords, width, height
