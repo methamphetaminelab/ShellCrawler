@@ -15,29 +15,49 @@ def generateClearDungeon(width, height):
 
     return dungeon
 
-def generateEnemies(dungeon, width, height, enemiesCount):
-    for _ in range(enemiesCount):
-        chestX = random.randint(1, height - 2)
-        chestY = random.randint(1, width - 2)
+def fillRoomWithDots(dungeon, roomX1, roomY1, roomX2, roomY2):
+    for x in range(roomX1, roomX2 + 1):
+        for y in range(roomY1, roomY2 + 1):
+            if dungeon[x][y] == " ":
+                dungeon[x][y] = "."
+    return dungeon
+
+def generateEnemies(dungeon, roomX1, roomY1, roomX2, roomY2, enemiesCount):
+    placedEnemies = 0
+    if enemiesCount > 2:
+        enemiesCount = 2
+
+    dungeon = fillRoomWithDots(dungeon, roomX1, roomY1, roomX2, roomY2)
+
+    while placedEnemies < enemiesCount:
+        enemyX = random.randint(roomX1, roomX2)
+        enemyY = random.randint(roomY1, roomY2)
         
-        while dungeon[chestX][chestY] != ".":
-            chestX = random.randint(1, height - 2)
-            chestY = random.randint(1, width - 2)
-        
-        dungeon[chestX][chestY] = 'E'
+        if dungeon[enemyX][enemyY] == ".":
+            if random.randint(0, 5) > 0:
+                dungeon[enemyX][enemyY] = "E"
+                placedEnemies += 1
 
     return dungeon
 
-def generateChests(dungeon, width, height, chestsCount):
-    for _ in range(chestsCount):
-        chestX = random.randint(1, height)
-        chestY = random.randint(1, width)
+def generateChests(dungeon, roomX1, roomY1, roomX2, roomY2, chestsCount):
+    placedChests = 0
+    if chestsCount > 2:
+        chestsCount = 2
+
+    if chestsCount <= 0:
+        chestsCount = 1
+
+    dungeon = fillRoomWithDots(dungeon, roomX1, roomY1, roomX2, roomY2)
+
+    while placedChests < chestsCount:
+        chestX = random.randint(roomX1, roomX2)
+        chestY = random.randint(roomY1, roomY2)
         
-        while dungeon[chestX][chestY] != ".":
-            chestX = random.randint(1, height)
-            chestY = random.randint(1, width)
-        
-        dungeon[chestX][chestY] = 'C'
+        if dungeon[chestX][chestY] == "." or dungeon[chestX][chestY] == " ":
+            if random.randint(0, 5) > 0:
+                dungeon[chestX][chestY] = "C"
+                placedChests += 1
 
     return dungeon
 
@@ -131,8 +151,5 @@ def generateDungeon(enemiesCount, chestsCount, floorsCount):
     dungeon, roomsCoords = generateRooms(dungeon, width, height)  # Генеруем комнаты
     # dungeon = generateChests(dungeon, width, height, roomsCoor)  # Генерация сундуков
     # dungeon = generateEnemies(dungeon, width, height, enemiesCount)  # Генерация врагов
-
-    for row in dungeon:
-        print(''.join(row))
 
     return dungeon, roomsCoords, width, height
