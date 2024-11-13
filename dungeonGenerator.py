@@ -18,7 +18,7 @@ def generateClearDungeon(width, height):
 def fillRoomWithDots(dungeon, roomX1, roomY1, roomX2, roomY2):
     for x in range(roomX1, roomX2 + 1):
         for y in range(roomY1, roomY2 + 1):
-            if dungeon[x][y] == " ":
+            if dungeon[x][y] in [" ", '.', '']:
                 dungeon[x][y] = "."
     return dungeon
 
@@ -35,7 +35,7 @@ def generateEnemies(dungeon, roomX1, roomY1, roomX2, roomY2, enemiesCount):
         
         if dungeon[enemyX][enemyY] == ".":
             if random.randint(0, 5) > 0:
-                dungeon[enemyX][enemyY] = "E"
+                dungeon[enemyX][enemyY] = "○"
                 placedEnemies += 1
 
     return dungeon
@@ -56,8 +56,22 @@ def generateChests(dungeon, roomX1, roomY1, roomX2, roomY2, chestsCount):
         
         if dungeon[chestX][chestY] == "." or dungeon[chestX][chestY] == " ":
             if random.randint(0, 5) > 0:
-                dungeon[chestX][chestY] = "C"
+                dungeon[chestX][chestY] = "●"
                 placedChests += 1
+
+    return dungeon
+
+def generateFloor(dungeon, roomX1, roomY1, roomX2, roomY2):
+    floorPlaced = False
+    dungeon = fillRoomWithDots(dungeon, roomX1, roomY1, roomX2, roomY2)
+
+    while not floorPlaced:
+        floorX = random.randint(roomX1, roomX2)
+        floorY = random.randint(roomY1, roomY2)
+        
+        if dungeon[floorX][floorY] == "." or dungeon[floorX][floorY] == " ":
+            dungeon[floorX][floorY] = "▼"
+            floorPlaced = True
 
     return dungeon
 
@@ -143,13 +157,11 @@ def generateRooms(dungeon, width, height):
 def randomSize():
     return random.randint(20, 30), random.randint(10, 15)
 
-def generateDungeon(enemiesCount, chestsCount, floorsCount):
+def generateDungeon():
     width, height = randomSize() # Выбираем размер подземелья
     print(f"{width}x{height}")
     
     dungeon = generateClearDungeon(width, height)  # Генерируем пустое подземелья
     dungeon, roomsCoords = generateRooms(dungeon, width, height)  # Генеруем комнаты
-    # dungeon = generateChests(dungeon, width, height, roomsCoor)  # Генерация сундуков
-    # dungeon = generateEnemies(dungeon, width, height, enemiesCount)  # Генерация врагов
 
     return dungeon, roomsCoords, width, height
