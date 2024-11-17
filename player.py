@@ -1,5 +1,6 @@
 import curses
-from dungeonGenerator import generateChests, generateEnemies, generateFloor
+from dungeonGenerator import generateChests, generateEnemies, generateFloor, generateDungeon
+from fightManager import startFight
 import random
 
 playerPos = [1, 1]
@@ -9,7 +10,7 @@ def movePlayer(dungeon, key, roomsCoords):
     x, y = playerPos
     curses.curs_set(0)
 
-    if '▼' not in dungeon:
+    if not any('▼' in row for row in dungeon):
         floorRoom = random.choice(roomsCoords)
 
     dungeon[x][y] = "."
@@ -25,11 +26,13 @@ def movePlayer(dungeon, key, roomsCoords):
 
     playerPos = [x, y]
 
-    if dungeon[x][y] in ['-', '|']:
+    if dungeon[x][y] == '○': # враг
+        startFight()
+    elif dungeon[x][y] in ['-', '|']:
         dungeon = markClosestRoom(dungeon, playerPos, roomsCoords, floorRoom)
 
     dungeon[x][y] = "◆"
-    return dungeon
+    return dungeon, roomsCoords
 
 def markClosestRoom(dungeon, playerPos, roomsCoords, floorRoom):
     def manhattanDistance(room, pos):
